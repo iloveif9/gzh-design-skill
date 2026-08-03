@@ -2,8 +2,8 @@
 """微信公众号 HTML 合规校验器。
 
 把 SKILL.md 里"必须遵守的平台限制"从模型自觉变成确定性兜底。
-排版生成后必跑：检查禁用标签/属性/样式，并核查文字节点是否用
-<span leaf=""> 包裹（公众号编辑器粘贴后保持样式的关键）。
+排版生成后必跑：检查禁用标签/属性/样式、严格标签闭合结构，并核查
+文字节点是否用 <span leaf=""> 包裹（公众号编辑器粘贴后保持样式的关键）。
 
 用法:
     validate_gzh_html.py <file.html>
@@ -44,6 +44,73 @@ HALF_PUNCT = re.compile(r"[一-鿿㐀-䶿][,;!?]")
 ASCII_QUOTE = re.compile(r"[\"']")
 # 代码区特征：等宽字体或 white-space:pre —— 其内半角符号是正常的
 CODE_STYLE = re.compile(r"monospace|white-space\s*:\s*pre|courier|consolas|sf mono", re.I)
+VOID_TAGS = {
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
+    "meta", "param", "source", "track", "wbr",
+}
+SVG_SELF_CLOSING_TAGS = {
+    "circle", "ellipse", "line", "path", "polygon", "polyline", "rect",
+    "stop", "use",
+}
+
+
+class StructureChecker(HTMLParser):
+    """严格检查标签嵌套，不影响 LeafChecker 的容错深度逻辑。"""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack = []  # [(tag, opening_line)]
+        self.issues = []
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag not in VOID_TAGS:
+            self.stack.append((tag, self.getpos()[0]))
+
+    def handle_startendtag(self, tag, attrs):
+        tag = tag.lower()
+        if tag not in VOID_TAGS and tag not in SVG_SELF_CLOSING_TAGS:
+            line = self.getpos()[0]
+            self.issues.append(
+                f"非法自闭合标签 <{tag} />：第 {line} 行；"
+                "非 void HTML 标签必须显式成对闭合")
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        line = self.getpos()[0]
+        if tag in VOID_TAGS:
+            self.issues.append(
+                f"孤立结束标签 </{tag}>：第 {line} 行（void 标签不能有结束标签）")
+            return
+        if not self.stack:
+            self.issues.append(f"孤立结束标签 </{tag}>：第 {line} 行")
+            return
+        if self.stack[-1][0] == tag:
+            self.stack.pop()
+            return
+
+        match_index = next(
+            (i for i in range(len(self.stack) - 1, -1, -1)
+             if self.stack[i][0] == tag),
+            None,
+        )
+        if match_index is None:
+            self.issues.append(f"孤立结束标签 </{tag}>：第 {line} 行")
+            return
+
+        expected, opening_line = self.stack[-1]
+        self.issues.append(
+            f"错序结束标签 </{tag}>：第 {line} 行；应先关闭 "
+            f"<{expected}>（第 {opening_line} 行开启）")
+        # 恢复到匹配标签之前，避免同一个错序在 EOF 形成重复级联报告。
+        del self.stack[match_index:]
+
+    def finish(self):
+        eof_line = self.getpos()[0]
+        for tag, opening_line in reversed(self.stack):
+            self.issues.append(
+                f"未闭合标签 <{tag}>：第 {opening_line} 行开启，"
+                f"至 EOF 第 {eof_line} 行仍未关闭")
 
 
 class LeafChecker(HTMLParser):
@@ -106,10 +173,26 @@ def validate(html, name="<input>"):
                 f"{msg}（命中 {hits} 处）")
 
     checker = LeafChecker()
+    structure = StructureChecker()
     try:
         checker.feed(html)
     except Exception as e:  # 容错：解析失败不致命，只提示
         warnings.append(f"HTML 解析中断: {e}")
+
+    try:
+        structure.feed(html)
+        structure.close()
+        structure.finish()
+    except Exception as e:
+        # 结构检查本身不能静默失败，否则会把不确定的结构误报为合规。
+        errors.append(f"HTML 标签结构解析失败: {e}")
+    if structure.issues:
+        sample_limit = 10
+        sample = "；".join(structure.issues[:sample_limit])
+        remaining = len(structure.issues) - sample_limit
+        suffix = f"；另有 {remaining} 处" if remaining > 0 else ""
+        errors.append(
+            f"HTML 标签结构错误 ×{len(structure.issues)}：{sample}{suffix}")
 
     has_cjk = bool(CJK.search(html))
     if has_cjk and checker.span_leaf_count == 0:
