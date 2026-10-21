@@ -16,6 +16,58 @@
 
 ---
 
+## ⭐ 本机定版规范（2026-10-21 用户拍板 · **优先于本文件下文所有数值**）
+
+> 这几条是用户逐条看过 390px 手机实机效果后定的，**不要改、不要再问**。下文任何与本节冲突的数值，以本节为准。
+
+**1. 主题固定**：本机公众号排版一律用「摸鱼绿」，用户没明确说换主题时**不许换主题、不许自创配色**。
+
+**2. 版心（横向留白）**：**不要再给内容加左右 padding**。
+- 微信正文区自带约 16px 左右内边距，再叠 20px 会让 390px 手机一行只剩 19 字（用户原话：「两边空太多了，有问题的」）。
+- 正文容器 `padding:0`；封面卡 `padding:26px 20px 22px`；普通信息卡/金句卡/公式卡 `padding:16px 16px`；虚线引用框 `padding:14px 16px`；结尾 CTA 卡 `margin:0 0 24px` + `padding:28px 18px`；卡片套卡片累计左右不要超过 40px。
+- 验收：390px 下正文行宽 ≈358px（21–22 字/行），卡片内文字 ≥320px。
+
+**3. 字号（渲染后的实际值）**：
+
+| 位置 | 字号 |
+|---|---|
+| 正文段落 | **16.5px** |
+| 🎯 全文速览卡 · 一级要点 | **16px** |
+| 🎯 全文速览卡 · 二级嵌套要点 | **15px** |
+| 💡 隐喻 / 金句卡 | 15.5px |
+| 🎁 检验标准卡 | 16px |
+| ⭐ 速记公式卡 | 16.5px |
+| 虚线引用框正文 | 15px |
+| 小注 / 脚注（斜体） | 14px |
+| 章节标题 | 19.5px（PART 编号 30.5px） |
+| 封面主标题 | 26.5px |
+| 表格 | 5 列 13.5 / 4 列 14.5 / ≤3 列 15；表头各再 -0.5px |
+| 全篇最小 | 12px（仅 PART、APPENDIX、CAPEX、ROI 等纯装饰小标签） |
+
+行高：正文 1.8、全局 1.75；字间距 0.5px；最大宽度 677px。
+
+**4. 全文速览卡组件（本机定版写法）**：
+
+```html
+<section style="background:#ECFDF5;padding:16px 16px;border-radius:12px;border:1px solid #BBF7D0;margin-bottom:26px;">
+  <p style="font-size:13px;font-weight:800;color:#059669;letter-spacing:1.5px;margin:0 0 12px;"><span leaf="">🎯 全文速览</span></p>
+  <!-- 一级要点 16px -->
+  <section style="display:flex;align-items:flex-start;margin-bottom:10px;">
+    <span style="display:inline-block;width:7px;height:7px;background:#059669;border-radius:50%;margin:10px 9px 0 0;flex-shrink:0;"><span leaf=""><br></span></span>
+    <p style="font-size:16px;color:#374151;margin:0;line-height:1.8;flex:1;"><span leaf="">一级要点</span></p>
+  </section>
+  <!-- 二级嵌套要点 15px（圆点换浅绿 #6EE7B7） -->
+  <section style="display:flex;align-items:flex-start;margin-bottom:9px;padding-left:16px;">
+    <span style="display:inline-block;width:7px;height:7px;background:#6EE7B7;border-radius:50%;margin:9px 9px 0 0;flex-shrink:0;"><span leaf=""><br></span></span>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.8;flex:1;"><span leaf="">二级嵌套要点</span></p>
+  </section>
+</section>
+```
+
+**5. 交付前必查**：`validate_gzh_html.py` 0 ERROR/0 WARNING；源文档文本块缺失 0；标签只剩 section/p/span/strong/h3/br/table 系（禁 svg/div/外链图标）；390px 逐块目检（表格数字必须单行不断行，卡片不溢出）。
+
+---
+
 ## 设计变量速查表
 
 ```
@@ -39,12 +91,12 @@
 浅边框：       #E5E7EB
 浅灰背景：     #F3F4F6
 极浅灰：       #F9FAFB
-正文字号：     14px（不可改）
-正文行高：     1.9
+正文字号：     16.5px（本机定版，见上方定版规范；原始模板为 14px）
+正文行高：     1.9 → 本机用 1.8
 全局行高：     1.75
 字间距：       0.5px
 最大宽度：     677px
-内容区边距：   0 20px（模块左右各 20px）
+内容区边距：   0（本机定版：不要再叠左右 padding，交给微信自带的 ~16px）
 ```
 
 字体栈：`-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif`
