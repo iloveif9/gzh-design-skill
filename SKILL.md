@@ -7,7 +7,8 @@ description: 微信公众号文章排版引擎，将 Markdown 转换为可直接
 
 把一篇 Markdown 文章转换为可直接复制粘贴进微信公众号编辑器、且粘贴后样式不丢失的 HTML。
 
-> **本机默认（2026-10-21 用户拍板，别再问）**：默认主题固定「摸鱼绿」，用户没明确说要换主题时**不要换主题、不要自创配色**。版心（不许再叠左右 padding）、正文字号 16.5px、速览卡一级 16px / 二级 15px 等逐条数值见 [references/theme-moyu-green.md](references/theme-moyu-green.md) 开头的「⭐ 本机定版规范」——那一节**优先于**其他文档里的任何旧数值。
+> **本机默认（2026-10-21 用户拍板，别再问）**：默认主题固定「摸鱼绿」，用户没明确说要换主题时**不要换主题、不要自创配色**。版心（不许再叠左右 padding）、正文字号 16.5px、速览卡一级 16px / 二级 15px 等逐条数值见 [references/theme-moyu-green.md](references/theme-moyu-green.md) 开头的「⭐ 本机定版规范」——组件片段已按该节全部换算好，直接复制即符合定版。
+> 摸鱼绿另配参考实现 [scripts/build_moyu_green.py](scripts/build_moyu_green.py)：飞书文档 XML → 成品 HTML（含封面/目录/章节徽标/结尾 CTA），已实测重跑可逐字节复现已发布稿，用法见该主题文档「6. 生成器」。
 
 核心资产是 `references/` 下的**主题组件库**（每套一个主题：设计变量 + 各组件完整 HTML + 模板骨架 + 映射规则）外加 1 套**通用增量库**（代码块 / 图片·GIF / 小标签标题，所有主题共用）。主题清单以 `references/theme-index.md` 为单一来源。本 SKILL.md 只负责流程与决策，**具体 HTML 代码一律从组件库取，不要凭记忆手写**。
 

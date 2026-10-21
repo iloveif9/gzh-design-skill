@@ -172,7 +172,8 @@ gzh-design/
 │   └── eval-cases.md           # 触发用例 + 可验证循环
 ├── scripts/
 │   ├── validate_gzh_html.py    # 产物合规校验
-│   └── component_lint.py       # 组件库源头检查
+│   ├── component_lint.py       # 组件库源头检查
+│   └── build_moyu_green.py     # 摸鱼绿参考实现：飞书 XML → 成品 HTML（可直接出稿）
 ├── assets/
 │   ├── sample-article.md       # 演示输入
 │   └── theme-previews/         # 主题生成器产出的区块库预览
